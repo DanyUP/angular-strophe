@@ -1,0 +1,6 @@
+{
+  "/http-bind": {
+    "target": "http://172.27.42.215:5443/http-bind",
+    "secure": false
+  }
+}

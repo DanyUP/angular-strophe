@@ -62,7 +62,8 @@
               "buildTarget": "angular-chat:build:production"
             },
             "development": {
-              "buildTarget": "angular-chat:build:development"
+              "buildTarget": "angular-chat:build:development",
+              "proxyConfig": "src/proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
@@ -87,7 +88,9 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/strophe.js/dist/strophe.umd.js"
+            ]
           }
         }
       }

@@ -1,2 +1,6 @@
 
-<p>Roster</p>
+<ul>
+  @for (user of users(); track user.jid) {
+    <li>{{user.name}}</li>
+  }
+</ul>

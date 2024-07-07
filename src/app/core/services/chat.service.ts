@@ -1,8 +1,10 @@
-import { Injectable } from '@angular/core';
-import {$msg, $pres} from "strophe.js"
-import {Strophe} from "strophe.js";
+import {Injectable} from '@angular/core';
+import {$iq, $msg, $pres, Strophe} from "strophe.js"
 import {BehaviorSubject, Subject} from "rxjs";
 import {Message} from "../models/message.model";
+import {RosterItem} from "../models/roster-item.model";
+import {PresenceType} from "../models/presence-type.model";
+import {SubscriptionType} from "../models/subscription-type.model";
 
 const BOSH_SERVICE = '/http-bind'
 
@@ -14,6 +16,7 @@ export class ChatService {
   private connection = new Strophe.Connection(BOSH_SERVICE);
 
   private statusBS = new BehaviorSubject<number>(Strophe.Status.DISCONNECTED);
+  private roster = new BehaviorSubject<RosterItem[]>([]);
   private logSubject = new Subject<string>();
   private messagesSubject = new Subject<Message>();
 
@@ -22,6 +25,7 @@ export class ChatService {
   readonly status$ = this.statusBS.asObservable();
   readonly log$ = this.logSubject.asObservable();
   readonly messages$ = this.messagesSubject.asObservable();
+  readonly roster$ = this.roster.asObservable();
 
   constructor() { }
 
@@ -46,6 +50,25 @@ export class ChatService {
 
     this.connection.send(message.tree());
     this.logSubject.next(`Sent a message to ${destUser}`);
+  }
+
+  private loadRoster() {
+    const rosterRequest = $iq({ type: 'get' }).c('query', { xmlns: 'jabber:iq:roster' });
+    this.connection.sendIQ(rosterRequest, (response: Element) => {
+      const items = response.getElementsByTagName('item');
+      const rosterItems = Array.from(items).map((item) => {
+        const jid = item.getAttribute('jid') ?? '';
+        const name = item.getAttribute('name') || jid;
+        const subscription = item.getAttribute('subscription') as SubscriptionType || SubscriptionType.BOTH;
+        return {
+          jid,
+          name,
+          presence: PresenceType.OFFLINE,
+          subscription
+        } as RosterItem;
+      });
+      this.roster.next(rosterItems);
+    });
   }
 
   private setupMessageHandler() {
@@ -81,6 +104,7 @@ export class ChatService {
     } else if (status === Strophe.Status.CONNECTED) {
       this.logSubject.next("Connection connected!");
       this.setupMessageHandler();
+      this.loadRoster();
       this.connection.send($pres().tree());
     }
   }

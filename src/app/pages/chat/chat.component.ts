@@ -24,6 +24,7 @@ export class ChatComponent {
   private chatService = inject(ChatService);
   private router = inject(Router);
 
+  roster = toSignal(this.chatService.roster$, { initialValue: [] });
 
   messages: Signal<Message[]> = toSignal(this.chatService.messages$.pipe(
     scan((acc, message) => [message, ...acc], [] as Message[])

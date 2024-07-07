@@ -1,0 +1,19 @@
+
+<div class="border-b border-cyan-500 pb-2 mb-2">
+  <h2>User 1</h2>
+</div>
+<div class="flex-1 min-h-52 max-h-52 overflow-y-auto">
+  <ul>
+    @for (msg of messages(); track msg.timestamp) {
+      <li>
+        <p>{{msg.timestamp}} - {{msg.userFrom}} -> {{msg.body}}</p>
+      </li>
+    }
+  </ul>
+</div>
+<div class=" my-4">
+  <form class="flex flex-row" [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+    <input class="flex-1 ml-0.5 p-2 w-full border border-cyan-500 rounded-l-md focus:rounded-r-none" type='text' formControlName="message" />
+    <input class="px-4 bg-cyan-500 rounded-r-md" type='submit' value='Send' />
+  </form>
+</div>

@@ -25,7 +25,8 @@
     ],
     "paths": {
       "strophe.js": [
-        "./node_modules/strophe.js/src/types/index.d.ts"
+        "./node_modules/strophe.js/src/types/index.d.ts",
+        "./node_modules/strophe.js/src/index.js"
       ]
     }
   },

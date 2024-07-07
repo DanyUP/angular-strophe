@@ -1,0 +1,16 @@
+
+.input-field {
+  @apply flex my-3;
+
+  label {
+    @apply inline-block w-1/3;
+  }
+
+  input {
+    @apply flex-1 rounded-sm border border-cyan-500;
+  }
+}
+
+.primary-btn {
+  @apply bg-cyan-500 rounded-md py-2;
+}

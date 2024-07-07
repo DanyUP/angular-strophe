@@ -1,0 +1,13 @@
+<form class="w-4/12 border border-cyan-500 rounded-md mx-auto p-4 my-4" [formGroup]="loginForm" (ngSubmit)="login()" >
+  <div class="input-field">
+    <label for='jid'>JID:</label>
+    <input type='text' id='jid' formControlName="jid" />
+  </div>
+  <div class="input-field">
+    <label for='pass'>Password:</label>
+    <input type='password' id='pass' formControlName="password" />
+  </div>
+  <div>
+    <input class="w-full primary-btn" type='submit' value='Connect' />
+  </div>
+</form>

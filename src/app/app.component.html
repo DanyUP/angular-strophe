@@ -1,9 +1,25 @@
 <div id='login' style='text-align: center'>
-  <form [formGroup]="loginForm" (ngSubmit)="login()" >
-    <label for='jid'>JID:</label>
-    <input type='text' id='jid' formControlName="jid" [disabled]="connected()" />
-    <label for='pass'>Password:</label>
-    <input type='password' id='pass' formControlName="password" [disabled]="connected()" />
-    <input type='submit' value='connect' [disabled]="connected()" />
-  </form>
+  @if (connectionStatus() !== Status.CONNECTED) {
+    <form [formGroup]="loginForm" (ngSubmit)="login()" >
+      <label for='jid'>JID:</label>
+      <input type='text' id='jid' formControlName="jid" />
+      <label for='pass'>Password:</label>
+      <input type='password' id='pass' formControlName="password" />
+      <input type='submit' value='Connect' />
+    </form>
+  } @else {
+    <form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+      <label for='destUser'>Send to:</label>
+      <input type='text' id='destUser' formControlName="destUser" />
+      <label for='message'>Message:</label>
+      <textarea id='message' formControlName="message">
+      </textarea>
+      <input type='submit' value='Send' />
+    </form>
+    <ul>
+      @for (msg of messages(); track msg.timestamp) {
+        <li>[{{msg.timestamp}} - {{msg.userFrom}}] {{msg.body}}</li>
+      }
+    </ul>
+  }
 </div>

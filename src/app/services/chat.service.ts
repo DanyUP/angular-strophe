@@ -6,7 +6,6 @@ import {Message} from "../models/message.model";
 
 const BOSH_SERVICE = '/http-bind'
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -14,11 +13,11 @@ export class ChatService {
 
   private connection = new Strophe.Connection(BOSH_SERVICE);
 
-  private statusBS = new BehaviorSubject<Strophe.Status>(Strophe.Status.DISCONNECTED);
+  private statusBS = new BehaviorSubject<number>(Strophe.Status.DISCONNECTED);
   private logSubject = new Subject<string>();
   private messagesSubject = new Subject<Message>();
 
-  private messageHandler: Strophe.Handler;
+  private messageHandler: any;
 
   readonly status$ = this.statusBS.asObservable();
   readonly log$ = this.logSubject.asObservable();
@@ -27,14 +26,21 @@ export class ChatService {
   constructor() { }
 
   connect(jid: string, password: string) {
-    this.connection.connect(jid, password, (status: Strophe.Status) => this.onConnect(status))
+    this.connection.connect(jid, password, (status: number) => this.onConnect(status))
+  }
+
+  disconnect() {
+    if (!this.connection.connected) {
+      return;
+    }
+    this.connection.disconnect();
   }
 
   sendMessage(destUser: string, messageText: string) {
     if (!this.connection.connected) {
       return;
     }
-    const message = $msg({ to: destUser, from: this.connection.jid, type: 'chat' })
+    const message = $msg({ to: destUser, type: 'chat' })
       .c('body')
       .t(messageText);
 
@@ -44,7 +50,7 @@ export class ChatService {
 
   private setupMessageHandler() {
     this.deleteMessageHandler();
-    this.messageHandler = this.connection.addHandler((msg: Element) => this.onMessage(msg), null, 'message', null, null, null);
+    this.messageHandler = this.addHandler((msg: Element) => this.onMessage(msg), null, 'message');
   }
 
   private deleteMessageHandler() {
@@ -53,7 +59,16 @@ export class ChatService {
     }
   }
 
-  private onConnect(status: Strophe.Status) {
+  private addHandler(
+    handler: Function, ns: string | null, name: string | null, type?: string | string[] | null, id?: string | null, from?: string | null, options?: {
+      matchBareFromJid?: boolean;
+      ignoreNamespaceFragment?: boolean;
+    }
+  ): any {
+    return this.connection.addHandler(handler, ns as any, name as any, type as any, id as any, from as any, options)
+  }
+
+  private onConnect(status: number) {
     this.statusBS.next(status);
     if (status === Strophe.Status.CONNECTING) {
       this.logSubject.next("Strophe connecting...");
@@ -70,7 +85,7 @@ export class ChatService {
     }
   }
 
-  private onMessage(message: Element) {
+  private onMessage(message: Element): boolean {
     const to = message.getAttribute('to');
     const from = message.getAttribute('from');
     const type = message.getAttribute('type');
@@ -89,5 +104,6 @@ export class ChatService {
       });
 
     }
+    return true;
   }
 }

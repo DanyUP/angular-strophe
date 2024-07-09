@@ -54,21 +54,7 @@ export class ChatService {
 
   private loadRoster() {
     const rosterRequest = $iq({ type: 'get' }).c('query', { xmlns: 'jabber:iq:roster' });
-    this.connection.sendIQ(rosterRequest, (response: Element) => {
-      const items = response.getElementsByTagName('item');
-      const rosterItems = Array.from(items).map((item) => {
-        const jid = item.getAttribute('jid') ?? '';
-        const name = item.getAttribute('name') || jid;
-        const subscription = item.getAttribute('subscription') as SubscriptionType || SubscriptionType.BOTH;
-        return {
-          jid,
-          name,
-          presence: PresenceType.OFFLINE,
-          subscription
-        } as RosterItem;
-      });
-      this.roster.next(rosterItems);
-    });
+    this.connection.sendIQ(rosterRequest, (response: Element) => this.onRoster(response));
   }
 
   private setupMessageHandler() {
@@ -105,8 +91,66 @@ export class ChatService {
       this.logSubject.next("Connection connected!");
       this.setupMessageHandler();
       this.loadRoster();
-      this.connection.send($pres().tree());
     }
+  }
+
+  private onRoster(response: Element): boolean {
+    const items = response.getElementsByTagName('item');
+    const rosterItems = Array.from(items).map((item) => {
+      const jid = Strophe.getBareJidFromJid(item.getAttribute('jid') ?? '');
+      const name = item.getAttribute('name') || jid;
+      const subscription = item.getAttribute('subscription') as SubscriptionType || SubscriptionType.BOTH;
+      return {
+        jid,
+        name,
+        presence: PresenceType.OFFLINE,
+        subscription
+      } as RosterItem;
+    });
+    this.roster.next(rosterItems);
+    this.addHandler((presence: Element) => this.onPresence(presence), null, 'presence');
+
+    this.connection.send($pres().tree());
+    return true;
+  }
+
+  private onPresence(presence: Element) {
+    const ptype = presence.getAttribute('type') ?? 'online';
+    const from = Strophe.getBareJidFromJid(presence.getAttribute('from') ?? '');
+
+    if (ptype !== 'error') {
+      // Non è un errore, quindi è un cambio stato
+      let status: PresenceType;
+      if (ptype === 'unavailable') {
+        status = PresenceType.OFFLINE;
+      } else {
+        const show = presence.getElementsByTagName('show')[0]?.textContent ?? '';
+        switch (show) {
+          case '':
+            status = PresenceType.ONLINE;
+            break;
+          case 'chat':
+            status = PresenceType.CHAT;
+            break;
+          case 'away':
+            status = PresenceType.AWAY;
+            break
+          default:
+            status = PresenceType.UNKNOWN;
+        }
+      }
+      const currentRoster = this.roster.getValue();
+      const foundIndex = currentRoster.findIndex((user) => user.jid === from);
+      if (foundIndex > -1) {
+        const newRoster = currentRoster.slice(0);
+        newRoster[foundIndex] = {
+          ...currentRoster[foundIndex],
+          presence: status,
+        }
+        this.roster.next(newRoster);
+      }
+    }
+    return true;
   }
 
   private onMessage(message: Element): boolean {

@@ -1,0 +1,8 @@
+.status-offline .status-icon {
+  @apply bg-gray-500;
+}
+
+.status-online .status-icon {
+  @apply bg-green-400;
+}
+

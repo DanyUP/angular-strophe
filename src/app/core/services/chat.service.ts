@@ -122,7 +122,7 @@ export class ChatService {
    * @private
    */
   private extractRosterItems(element: Element, tagName: string = 'item'): RosterItem[] {
-    const items = element.getElementsByTagName('item');
+    const items = element.getElementsByTagName(tagName);
     return Array.from(items).map((item) => {
       // The "correct" jid is the bare jid (user@domain)
       const jid = Strophe.getBareJidFromJid(item.getAttribute('jid') ?? '');

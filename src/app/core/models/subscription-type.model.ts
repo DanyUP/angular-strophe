@@ -2,5 +2,6 @@
 export const enum SubscriptionType {
   BOTH = 'both',
   FROM = 'from',
-  TO = 'to'
+  TO = 'to',
+  REMOVE = 'remove'
 }

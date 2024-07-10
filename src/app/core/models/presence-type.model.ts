@@ -4,5 +4,6 @@ export const enum PresenceType {
   OFFLINE = 'offline',
   AWAY = 'away',
   CHAT = 'chat',
-  UNKNOWN = 'unknown',
+  DO_NOT_DISTURB = 'do-not-disturb',
+  EXTENDED_AWAY = 'extended-away'
 }
